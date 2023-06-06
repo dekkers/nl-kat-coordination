@@ -13,12 +13,7 @@ jobs:
   changes:
     runs-on: ubuntu-22.04
     outputs:
-      boefje: ${{ steps.filter.outputs.boefje }}
-      bytes: ${{ steps.filter.outputs.bytes }}
-      keiko: ${{ steps.filter.outputs.keiko }}
-      mula: ${{ steps.filter.outputs.mula }}
-      octopoes: ${{ steps.filter.outputs.octopoes }}
-      rocky: ${{ steps.filter.outputs.rocky }}
+      packages: ${{ steps.filter.outputs.changes }}
     steps:
     - uses: dorny/paths-filter@v2
       id: filter
@@ -46,15 +41,15 @@ jobs:
             - '.github/workflows/debian_package.yml'
 
   build-package:
+    needs: changes
     strategy:
       matrix:
         dist: [debian11, debian12, ubuntu22.04]
-        package: [boefjes, bytes, keiko, mula, octopoes, rocky]
+        # On main/release branches and tags we always want to build all the packages
+        package: ${{ github.event_name == 'push' && [boefje, bytes, keiko, mula, octopoes, rocky] || fromJSON(needs.changes.outputs.packages) }}
     runs-on: ubuntu-22.04
     env:
       PKG_NAME: kat-${{ matrix.package }}
-    needs: changes
-    if: ${{ needs.changes.outputs.backend == matrix.package }} }}
 
     steps:
       - uses: actions/checkout@v3
