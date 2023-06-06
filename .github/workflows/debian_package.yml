@@ -1,4 +1,4 @@
-name: Build Debian and Ubuntu packages
+name: Debian packages
 
 on:
   pull_request:
@@ -19,8 +19,8 @@ jobs:
       id: filter
       with:
         filters: |
-          boefje:
-            - 'boefje/**'
+          boefjes:
+            - 'boefjes/**'
             - 'octopoes/**'
             - '.github/workflows/debian_package.yml'
           bytes:
@@ -40,13 +40,13 @@ jobs:
             - 'octopoes/**'
             - '.github/workflows/debian_package.yml'
 
-  build-package:
+  build:
     needs: changes
     strategy:
       matrix:
         dist: [debian11, debian12, ubuntu22.04]
         # On main/release branches and tags we always want to build all the packages
-        package: ${{ github.event_name == 'push' && [boefje, bytes, keiko, mula, octopoes, rocky] || fromJSON(needs.changes.outputs.packages) }}
+        package: ${{ github.event_name == 'push' && fromJSON('["boefjes", "bytes", "keiko", "mula", "octopoes", "rocky"]') || fromJSON(needs.changes.outputs.packages) }}
     runs-on: ubuntu-22.04
     env:
       PKG_NAME: kat-${{ matrix.package }}
@@ -86,4 +86,4 @@ jobs:
         uses: actions/upload-artifact@v3
         with:
           name: ${{env.PKG_NAME}}_${{ env.RELEASE_VERSION }}_${{ matrix.dist }}.deb
-          path: ${matrix.package}/build/${{env.PKG_NAME}}_${{ env.RELEASE_VERSION }}_amd64.deb
+          path: ${{matrix.package}}/build/${{env.PKG_NAME}}_${{ env.RELEASE_VERSION }}_amd64.deb
